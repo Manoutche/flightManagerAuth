@@ -25,6 +25,7 @@ C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\flightManagerAuth.AssemblyInfo.
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\flightManagerAuth.csproj.CoreCompileInputs.cache
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\flightManagerAuth.MvcApplicationPartsAssemblyInfo.cs
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\flightManagerAuth.MvcApplicationPartsAssemblyInfo.cache
+C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\flightManagerAuth.sourcelink.json
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\scopedcss\bundle\flightManagerAuth.styles.css
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\staticwebassets.build.json
 C:\wamp64\www\flightManagerAuth\obj\Debug\net9.0\staticwebassets.development.json

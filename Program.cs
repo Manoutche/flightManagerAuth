@@ -13,5 +13,7 @@ builder.Services.AddControllers();
 var app = builder.Build();
 // Utiliser la politique CORS
 app.UseCors("AllowAngularApp");
+// app.Urls.Add("http://+:5000");
+// app.Urls.Add("https://+:5001");
 app.MapControllers();
 app.Run();

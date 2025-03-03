@@ -8,22 +8,23 @@
     ".NETCoreApp,Version=v9.0": {
       "flightManagerAuth/1.0.0": {
         "dependencies": {
-          "Microsoft.AspNetCore.OpenApi": "9.0.1",
-          "System.DirectoryServices": "9.0.1",
-          "System.DirectoryServices.AccountManagement": "9.0.1"
+          "Microsoft.AspNetCore.OpenApi": "9.0.0",
+          "System.DirectoryServices": "9.0.0",
+          "System.DirectoryServices.AccountManagement": "9.0.0",
+          "System.DirectoryServices.Protocols": "9.0.2"
         },
         "runtime": {
           "flightManagerAuth.dll": {}
         }
       },
-      "Microsoft.AspNetCore.OpenApi/9.0.1": {
+      "Microsoft.AspNetCore.OpenApi/9.0.0": {
         "dependencies": {
           "Microsoft.OpenApi": "1.6.17"
         },
         "runtime": {
           "lib/net9.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "assemblyVersion": "9.0.1.0",
-            "fileVersion": "9.0.124.61009"
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52903"
           }
         }
       },
@@ -35,24 +36,24 @@
           }
         }
       },
-      "System.Configuration.ConfigurationManager/9.0.1": {
+      "System.Configuration.ConfigurationManager/9.0.0": {
         "dependencies": {
-          "System.Diagnostics.EventLog": "9.0.1",
-          "System.Security.Cryptography.ProtectedData": "9.0.1"
+          "System.Diagnostics.EventLog": "9.0.0",
+          "System.Security.Cryptography.ProtectedData": "9.0.0"
         },
         "runtime": {
           "lib/net9.0/System.Configuration.ConfigurationManager.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.124.61010"
+            "fileVersion": "9.0.24.52809"
           }
         }
       },
-      "System.Diagnostics.EventLog/9.0.1": {},
-      "System.DirectoryServices/9.0.1": {
+      "System.Diagnostics.EventLog/9.0.0": {},
+      "System.DirectoryServices/9.0.0": {
         "runtime": {
           "lib/net9.0/System.DirectoryServices.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.124.61010"
+            "fileVersion": "9.0.24.52809"
           }
         },
         "runtimeTargets": {
@@ -60,64 +61,64 @@
             "rid": "win",
             "assetType": "runtime",
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.124.61010"
+            "fileVersion": "9.0.24.52809"
           }
         }
       },
-      "System.DirectoryServices.AccountManagement/9.0.1": {
+      "System.DirectoryServices.AccountManagement/9.0.0": {
         "dependencies": {
-          "System.Configuration.ConfigurationManager": "9.0.1",
-          "System.DirectoryServices": "9.0.1",
-          "System.DirectoryServices.Protocols": "9.0.1"
+          "System.Configuration.ConfigurationManager": "9.0.0",
+          "System.DirectoryServices": "9.0.0",
+          "System.DirectoryServices.Protocols": "9.0.2"
         },
         "runtime": {
           "lib/net9.0/System.DirectoryServices.AccountManagement.dll": {
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52809"
           }
         },
         "runtimeTargets": {
           "runtimes/win/lib/net9.0/System.DirectoryServices.AccountManagement.dll": {
             "rid": "win",
             "assetType": "runtime",
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52809"
           }
         }
       },
-      "System.DirectoryServices.Protocols/9.0.1": {
+      "System.DirectoryServices.Protocols/9.0.2": {
         "runtime": {
           "lib/net9.0/System.DirectoryServices.Protocols.dll": {
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.2",
+            "fileVersion": "9.0.225.6610"
           }
         },
         "runtimeTargets": {
           "runtimes/linux/lib/net9.0/System.DirectoryServices.Protocols.dll": {
             "rid": "linux",
             "assetType": "runtime",
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.2",
+            "fileVersion": "9.0.225.6610"
           },
           "runtimes/osx/lib/net9.0/System.DirectoryServices.Protocols.dll": {
             "rid": "osx",
             "assetType": "runtime",
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.2",
+            "fileVersion": "9.0.225.6610"
           },
           "runtimes/win/lib/net9.0/System.DirectoryServices.Protocols.dll": {
             "rid": "win",
             "assetType": "runtime",
-            "assemblyVersion": "9.0.0.1",
-            "fileVersion": "9.0.124.61010"
+            "assemblyVersion": "9.0.0.2",
+            "fileVersion": "9.0.225.6610"
           }
         }
       },
-      "System.Security.Cryptography.ProtectedData/9.0.1": {
+      "System.Security.Cryptography.ProtectedData/9.0.0": {
         "runtime": {
           "lib/net9.0/System.Security.Cryptography.ProtectedData.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.124.61010"
+            "fileVersion": "9.0.24.52809"
           }
         }
       }
@@ -129,12 +130,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Microsoft.AspNetCore.OpenApi/9.0.1": {
+    "Microsoft.AspNetCore.OpenApi/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xRJe8UrLnOGs6hOBrT/4r74q97626H0mABb/DV0smlReIx6uQCENAe+TUqF6hD3NtT4sB+qrvWhAej6kxPxgew==",
-      "path": "microsoft.aspnetcore.openapi/9.0.1",
-      "hashPath": "microsoft.aspnetcore.openapi.9.0.1.nupkg.sha512"
+      "sha512": "sha512-FqUK5j1EOPNuFT7IafltZQ3cakqhSwVzH5ZW1MhZDe4pPXs9sJ2M5jom1Omsu+mwF2tNKKlRAzLRHQTZzbd+6Q==",
+      "path": "microsoft.aspnetcore.openapi/9.0.0",
+      "hashPath": "microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512"
     },
     "Microsoft.OpenApi/1.6.17": {
       "type": "package",
@@ -143,47 +144,47 @@
       "path": "microsoft.openapi/1.6.17",
       "hashPath": "microsoft.openapi.1.6.17.nupkg.sha512"
     },
-    "System.Configuration.ConfigurationManager/9.0.1": {
+    "System.Configuration.ConfigurationManager/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ntDQ+3A7vGq6jnv3KI8nv1Tfgmos9TG863xd/5tmms6LqrIxEze1RLuA3JB/AcpXMUSO70DXzXfPnJD2ZHFX0Q==",
-      "path": "system.configuration.configurationmanager/9.0.1",
-      "hashPath": "system.configuration.configurationmanager.9.0.1.nupkg.sha512"
+      "sha512": "sha512-PdkuMrwDhXoKFo/JxISIi9E8L+QGn9Iquj2OKDWHB6Y/HnUOuBouF7uS3R4Hw3FoNmwwMo6hWgazQdyHIIs27A==",
+      "path": "system.configuration.configurationmanager/9.0.0",
+      "hashPath": "system.configuration.configurationmanager.9.0.0.nupkg.sha512"
     },
-    "System.Diagnostics.EventLog/9.0.1": {
+    "System.Diagnostics.EventLog/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-iVnDpgYJsRaRFnk77kcLA3+913WfWDtnAKrQl9tQ5ahqKANTaJKmQdsuPWWiAPWE9pk1Kj4Pg9JGXWfFYYyakQ==",
-      "path": "system.diagnostics.eventlog/9.0.1",
-      "hashPath": "system.diagnostics.eventlog.9.0.1.nupkg.sha512"
+      "sha512": "sha512-qd01+AqPhbAG14KtdtIqFk+cxHQFZ/oqRSCoxU1F+Q6Kv0cl726sl7RzU9yLFGd4BUOKdN4XojXF0pQf/R6YeA==",
+      "path": "system.diagnostics.eventlog/9.0.0",
+      "hashPath": "system.diagnostics.eventlog.9.0.0.nupkg.sha512"
     },
-    "System.DirectoryServices/9.0.1": {
+    "System.DirectoryServices/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-FbghROy1XuLJBVNGFmagA8vWxWOO9vvyIn1/K/Nyy/WCdv8NTr6I+JJ3rbrYSw+3FAXOB/W+hQpMfgr7/8LRTQ==",
-      "path": "system.directoryservices/9.0.1",
-      "hashPath": "system.directoryservices.9.0.1.nupkg.sha512"
+      "sha512": "sha512-q1NKWidJNjnMImfp77Mljk3ZgZocTW5MQS6Cj+E+AvpGQVwQ+1HUlko7UOcBaV9m1QnouXyZ8ja6XhOPuOP0IA==",
+      "path": "system.directoryservices/9.0.0",
+      "hashPath": "system.directoryservices.9.0.0.nupkg.sha512"
     },
-    "System.DirectoryServices.AccountManagement/9.0.1": {
+    "System.DirectoryServices.AccountManagement/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ZEXoBUZXR2wEA7IDH6LuKW6xpEqysjc9dsiATPM2OIXJz0dS0otQ/Dt+u9SuqjvBkQF6QH+bjRO7HWAsQ9ZdEA==",
-      "path": "system.directoryservices.accountmanagement/9.0.1",
-      "hashPath": "system.directoryservices.accountmanagement.9.0.1.nupkg.sha512"
+      "sha512": "sha512-NHq2KjD8xGBY0HDQ5bs0H10yFUIkvwz+jlG2vvMsckVQjRHbk12eL5KQ0dYeUOq3eOa4UU+15xgF5vR//5m+TQ==",
+      "path": "system.directoryservices.accountmanagement/9.0.0",
+      "hashPath": "system.directoryservices.accountmanagement.9.0.0.nupkg.sha512"
     },
-    "System.DirectoryServices.Protocols/9.0.1": {
+    "System.DirectoryServices.Protocols/9.0.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Y7eAnpn6jvlIUNHbeR5uKhQYBmldvpAWnthwIpaIKpWvTbO+MfBM55eyyWpcP+4LTAn8N/Pf7ohAKvVEKt9vMQ==",
-      "path": "system.directoryservices.protocols/9.0.1",
-      "hashPath": "system.directoryservices.protocols.9.0.1.nupkg.sha512"
+      "sha512": "sha512-PIsrugQvUdJiuxU+oUvJYHBDUh4DX+s9rZDr082DlWe02nSPXqiYZ+bBFMw0ppNKmC0hVaXBcY5K8+bwtBlKAQ==",
+      "path": "system.directoryservices.protocols/9.0.2",
+      "hashPath": "system.directoryservices.protocols.9.0.2.nupkg.sha512"
     },
-    "System.Security.Cryptography.ProtectedData/9.0.1": {
+    "System.Security.Cryptography.ProtectedData/9.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-u+4PH6GyDjEsWgcpKp1S/DiyxtGvazNPdaPFR6p6/qZr3TW+oZWvwfHO2H2CSpS4KGl2z2CBfU6eB38PsmoxtA==",
-      "path": "system.security.cryptography.protecteddata/9.0.1",
-      "hashPath": "system.security.cryptography.protecteddata.9.0.1.nupkg.sha512"
+      "sha512": "sha512-CJW+x/F6fmRQ7N6K8paasTw9PDZp4t7G76UjGNlSDgoHPF0h08vTzLYbLZpOLEJSg35d5wy2jCXGo84EN05DpQ==",
+      "path": "system.security.cryptography.protecteddata/9.0.0",
+      "hashPath": "system.security.cryptography.protecteddata.9.0.0.nupkg.sha512"
     }
   }
 }
