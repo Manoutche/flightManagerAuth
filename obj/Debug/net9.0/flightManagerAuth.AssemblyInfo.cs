@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("flightManagerAuth")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b1e1327d32926cc9de995164291a0a15a6b6a30")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c54e66294e10fdde35b0213ebc732abc67faa5b2")]
 [assembly: System.Reflection.AssemblyProductAttribute("flightManagerAuth")]
 [assembly: System.Reflection.AssemblyTitleAttribute("flightManagerAuth")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
