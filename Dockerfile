@@ -14,7 +14,9 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS runtime
 WORKDIR /app
 
 # Installer les dépendances LDAP
-RUN apt-get update && apt-get install -y libldap2-dev
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libldap-2.5-0 \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/publish .
 
 # Exposer le port de l'application

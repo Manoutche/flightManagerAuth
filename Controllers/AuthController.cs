@@ -10,12 +10,21 @@ namespace FlightManagerApp.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly string _ldapServer;
+        private readonly string _ldapDomain;
+        private readonly int _ldapPort;
+
+        public AuthController()
+        {
+            _ldapServer = Environment.GetEnvironmentVariable("LDAP_SERVER") ?? "";
+            _ldapDomain = Environment.GetEnvironmentVariable("LDAP_DOMAIN") ?? "";
+            _ldapPort = 389; // 636 si SSL/TLS est activé
+        }
         [HttpPost("login")]
         [Consumes("application/json")]
         public IActionResult Authenticate([FromBody] LoginRequest request)
         {
-            string Domain = "mondomain.com";
-            bool isAuthenticated = AuthenticateUser(Domain, request.Username, request.Password);
+            bool isAuthenticated = AuthenticateUser(_ldapDomain, request.Username, request.Password);
             if (isAuthenticated)
             {
                 return Ok(new { success = true, message = "Authentification réussie." });
@@ -25,6 +34,11 @@ namespace FlightManagerApp.Controllers
 
         private bool AuthenticateUser(string domain, string username, string password)
         {
+            if (username.Trim() == "" || password.Trim() == "")
+            {
+                Console.WriteLine($" Certainn");
+                return false;
+            }
             // try
             // {
             //     using (var context = new PrincipalContext(ContextType.Domain, domain))
@@ -67,12 +81,10 @@ namespace FlightManagerApp.Controllers
         {
             try
             {
-                string ldapServer = "address IP"; // Remplace par ton serveur AD echo %LOGONSERVER%
-                int ldapPort = 389; // 636 si SSL/TLS est activé
-
+              
                 // Console.WriteLine($"[Linux] Tentative d'authentification LDAP pour {username}@{domain} via {ldapServer}:{ldapPort}");
                 string bindDn = $"{username}@{domain}";
-                using (var ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(ldapServer, ldapPort)))
+                using (var ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, _ldapPort)))
                 {
                     ldapConnection.AuthType = AuthType.Basic;
                     ldapConnection.SessionOptions.ProtocolVersion = 3;
@@ -96,7 +108,6 @@ namespace FlightManagerApp.Controllers
     
     public class LoginRequest
     {
-        // public string Domain { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }

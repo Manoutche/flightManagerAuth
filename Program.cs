@@ -1,4 +1,7 @@
+using DotNetEnv; // Nécessite le package DotNetEnv
+Env.Load(); // Charge le fichier .env
 var builder = WebApplication.CreateBuilder(args);
+
 // Ajouter une politique CORS
 builder.Services.AddCors(options =>
 {
@@ -13,7 +16,5 @@ builder.Services.AddControllers();
 var app = builder.Build();
 // Utiliser la politique CORS
 app.UseCors("AllowAngularApp");
-// app.Urls.Add("http://+:5000");
-// app.Urls.Add("https://+:5001");
 app.MapControllers();
 app.Run();
