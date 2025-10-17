@@ -7,7 +7,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // L'origine de votre application Angular
+        policy.WithOrigins("*") // L'origine de votre application Angular
               .AllowAnyHeader() // Autoriser tous les en-têtes HTTP
               .AllowAnyMethod(); // Autoriser toutes les méthodes HTTP (GET, POST, etc.)
     });

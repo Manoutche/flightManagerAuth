@@ -20,9 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=build /app/publish .
 
 # Exposer le port de l'application
-EXPOSE 5000
-EXPOSE 5001
+EXPOSE 8731
 
 # Démarrer l'application
-ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_URLS=http://+:8731
 ENTRYPOINT ["dotnet", "flightManagerAuth.dll"]

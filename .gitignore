@@ -4,3 +4,5 @@ bin/
 obj/
 .vscode/
 .env
+.env-example
+web.config
