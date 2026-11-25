@@ -81,55 +81,180 @@ puis renseigner `ApiClients`.
 
 ## Développement local
 
+Nécessite le SDK .NET 10.
+
 ```powershell
 $env:Ldap__Domain = "mondomaine.local"; dotnet run --launch-profile http
 ```
 
 ## Déploiement sur IIS
 
-Pré-requis : serveur Windows **joint au domaine**, certificat TLS pour le nom d'hôte de l'API.
+### 0. Pré-requis
 
-1. Installer IIS et la restriction d'IP :
-   ```powershell
-   Install-WindowsFeature Web-Server, Web-IP-Security -IncludeManagementTools
-   ```
-2. Installer le **ASP.NET Core Hosting Bundle** de la version du projet (9.x, 10.x après migration), puis `net stop was /y` et `net start w3svc`.
-3. Publier :
-   ```powershell
-   dotnet publish -c Release -o C:\inetpub\flightManagerAuth
-   ```
-4. Créer `C:\inetpub\flightManagerAuth\appsettings.Production.json` (domaine, `AllowedHosts`, applications).
-5. Pool d'applications sans code managé et site HTTPS uniquement :
-   ```powershell
-   Import-Module WebAdministration; New-WebAppPool -Name FlightManagerAuth; Set-ItemProperty IIS:\AppPools\FlightManagerAuth -Name managedRuntimeVersion -Value ""
-   ```
-   ```powershell
-   New-Website -Name FlightManagerAuth -PhysicalPath C:\inetpub\flightManagerAuth -ApplicationPool FlightManagerAuth -Port 443 -Ssl -HostHeader auth.mondomaine.local
-   ```
-   ```powershell
-   (Get-WebBinding -Name FlightManagerAuth -Protocol https).AddSslCertificate("<EMPREINTE_CERTIFICAT>", "My")
-   ```
-6. Droits de lecture pour le pool :
-   ```powershell
-   icacls C:\inetpub\flightManagerAuth /grant "IIS AppPool\FlightManagerAuth:(OI)(CI)RX"
-   ```
-7. N'autoriser que les serveurs backends (IP and Domain Restrictions) :
-   ```powershell
-   Set-WebConfigurationProperty -PSPath IIS:\ -Location FlightManagerAuth -Filter system.webServer/security/ipSecurity -Name allowUnlisted -Value $false
-   ```
-   ```powershell
-   Add-WebConfiguration -PSPath IIS:\ -Location FlightManagerAuth -Filter system.webServer/security/ipSecurity -Value @{ipAddress="10.0.0.10"; allowed="true"}
-   ```
-   (répéter la seconde commande pour chaque serveur backend).
-8. Tester :
-   ```powershell
-   Invoke-RestMethod -Uri https://auth.mondomaine.local/api/Auth/login -Method Post -ContentType application/json -Headers @{"X-Api-Key"="<cle>"} -Body '{"username":"compte.test","password":"<mot_de_passe_test>"}'
-   ```
+- Serveur Windows **joint au domaine** (le microservice interroge AD avec le compte machine du serveur).
+- Certificat TLS pour le nom de l'API (ex. `auth.mondomaine.local`), au format `.pfx`, émis par l'autorité interne.
+- Enregistrement DNS interne vers le serveur.
+- Si un ancien site IIS servait de proxy vers Docker (port 8731), le supprimer ou désactiver sa règle de réécriture.
 
-Dépannage : erreurs 500.30 / 500.31 / 502.5 → Observateur d'événements, journal *Application*, source
-*IIS AspNetCore Module V2*. Une erreur de configuration (`Ldap:Domain` absent, `KeyHash` invalide) empêche le
-démarrage et y est décrite. Pour plus de détails, passer temporairement `stdoutLogEnabled="true"` dans
-`web.config` (créer le dossier `logs` avec droit d'écriture pour le pool).
+### 1. Préparer le serveur (une seule fois, PowerShell administrateur)
 
-Les lignes d'audit (`AUDIT login application=... utilisateur=... resultat=...`) sont émises par `ILogger` ;
-brancher un fournisseur de journaux (journal d'événements Windows, fichier, SIEM) selon vos besoins.
+```powershell
+Install-WindowsFeature Web-Server -IncludeManagementTools
+```
+
+Installer le **ASP.NET Core 10.0 Runtime – Windows Hosting Bundle**
+(https://dotnet.microsoft.com/download/dotnet/10.0, colonne *ASP.NET Core Runtime*, lien *Hosting Bundle*).
+Le bundle d'une autre version (9 ou 11) ne suffit pas : l'application exige le runtime 10. Puis :
+
+```powershell
+net stop was /y
+```
+```powershell
+net start w3svc
+```
+```powershell
+Get-WebGlobalModule -Name AspNetCoreModuleV2
+```
+
+### 2. Publier (poste de développement, SDK .NET 10)
+
+```powershell
+dotnet publish "C:\Projet dev\flightManagerAuth\flightManagerAuth.csproj" -c Release -o C:\publish\flightManagerAuth
+```
+
+Copier le contenu de `C:\publish\flightManagerAuth` vers `C:\inetpub\flightManagerAuth` sur le serveur, par exemple :
+
+```powershell
+robocopy C:\publish\flightManagerAuth \NOM-SERVEUR\c$\inetpub\flightManagerAuth /E
+```
+
+### 3. Générer une clé d'API par application appelante
+
+Voir « Déclarer une application appelante » ci-dessus. La clé va au backend, l'empreinte au microservice.
+
+### 4. Configuration de production
+
+Créer `C:\inetpub\flightManagerAuth\appsettings.Production.json` :
+
+```json
+{
+  "AllowedHosts": "auth.mondomaine.local",
+  "Ldap": { "Domain": "mondomaine.local" },
+  "Security": {
+    "ApiClients": [
+      { "Name": "flightmanager-backend", "KeyHash": "<empreinte>" }
+    ]
+  },
+  "Logging": {
+    "EventLog": {
+      "LogLevel": {
+        "Default": "Warning",
+        "FlightManagerApp.Controllers.AuthController": "Information"
+      }
+    }
+  }
+}
+```
+
+Le bloc `Logging:EventLog` envoie aussi les connexions réussies au journal d'événements (par défaut seuls les
+échecs y vont). Pour une mise en service sans coupure, laisser `"ApiClients": []` au premier déploiement, puis le
+renseigner quand tous les backends envoient `X-Api-Key` (étape 10).
+
+### 5. Certificat
+
+```powershell
+Import-PfxCertificate -FilePath C:\certs\auth.pfx -CertStoreLocation Cert:\LocalMachine\My -Password (Read-Host -AsSecureString "Mot de passe du PFX")
+```
+```powershell
+Get-ChildItem Cert:\LocalMachine\My | Select-Object Subject, Thumbprint, NotAfter
+```
+
+### 6. Pool d'applications
+
+```powershell
+Import-Module WebAdministration; New-WebAppPool -Name FlightManagerAuth
+```
+```powershell
+Set-ItemProperty IIS:\AppPools\FlightManagerAuth -Name managedRuntimeVersion -Value ""
+```
+```powershell
+Set-ItemProperty IIS:\AppPools\FlightManagerAuth -Name startMode -Value AlwaysRunning
+```
+```powershell
+Set-ItemProperty IIS:\AppPools\FlightManagerAuth -Name processModel.idleTimeout -Value ([TimeSpan]::Zero)
+```
+
+- *No Managed Code* : ASP.NET Core n'utilise pas le CLR de IIS.
+- *AlwaysRunning* et pas d'arrêt sur inactivité : sinon le compteur d'échecs par compte repart à zéro.
+- Identité `ApplicationPoolIdentity` (compte machine vers AD) et **un seul processus de travail** (pas de web garden).
+
+### 7. Site HTTPS uniquement
+
+```powershell
+New-Website -Name FlightManagerAuth -PhysicalPath C:\inetpub\flightManagerAuth -ApplicationPool FlightManagerAuth -Port 443 -Ssl -HostHeader auth.mondomaine.local
+```
+```powershell
+(Get-WebBinding -Name FlightManagerAuth -Protocol https).AddSslCertificate("<THUMBPRINT>", "My")
+```
+
+Ajouter `-SslFlags 1` (SNI) si un autre site utilise déjà le port 443. Aucune liaison HTTP : l'application
+refuse le HTTP en production (403).
+
+### 8. Droits sur le dossier
+
+```powershell
+icacls C:\inetpub\flightManagerAuth /grant "IIS AppPool\FlightManagerAuth:(OI)(CI)RX"
+```
+
+Réseau : port 443 ouvert en entrée depuis les backends ; vers les contrôleurs de domaine, 53 (DNS), 88 (Kerberos),
+389 (LDAP signé/chiffré) et 464 — normalement déjà ouverts sur un serveur joint au domaine.
+
+### 9. Tester sur le serveur
+
+Avec un **compte inexistant**, sans risque pour un vrai compte :
+
+```powershell
+try { Invoke-RestMethod -Uri https://auth.mondomaine.local/api/Auth/login -Method Post -ContentType application/json -Body '{"username":"zz-test-inexistant","password":"faux"}' } catch { $_.Exception.Response.StatusCode.value__; $_.ErrorDetails.Message }
+```
+
+| Résultat | Signification |
+|---|---|
+| 401 `invalid_credentials` | Tout fonctionne et AD répond |
+| 503 `directory_unavailable` | AD injoignable : vérifier `Ldap:Domain`, DNS, flux réseau |
+| 401 `invalid_api_key` | Des clés sont déclarées : ajouter `-Headers @{"X-Api-Key"="<cle>"}` |
+| 500.30 / 500.31 / 502.5 | Problème de démarrage, voir étape 11 (500.31 = runtime 10 absent) |
+
+Puis une fois avec un vrai compte : 200 avec le bloc `user`.
+
+### 10. Raccorder les backends
+
+Chaque backend appelle `https://auth.mondomaine.local/api/Auth/login`, envoie `X-Api-Key` (et `X-Client-IP` si
+possible), utilise un timeout `HttpClient` d'environ 15 s, et affiche un message générique pour 401/403/423
+(« service indisponible » pour 503). Quand tous sont à jour, renseigner `ApiClients` puis :
+
+```powershell
+Restart-WebAppPool -Name FlightManagerAuth
+```
+
+### 11. Journaux et dépannage
+
+- Audit et erreurs : Observateur d'événements → *Journaux Windows* → *Application*, source **.NET Runtime**
+  (lignes `AUDIT login application=... utilisateur=... resultat=...`).
+- Échec de démarrage : même journal, source **IIS AspNetCore Module V2**. Une configuration invalide
+  (`Ldap:Domain` absent, `KeyHash` mal formé) y est décrite.
+- Plus de détails : créer `C:\inetpub\flightManagerAuth\logs` avec droit d'écriture pour le pool, passer
+  `stdoutLogEnabled="true"` dans `web.config`, puis remettre `false` après le diagnostic.
+
+### 12. Mettre à jour
+
+```powershell
+Set-Content C:\inetpub\flightManagerAuth\app_offline.htm "Maintenance"
+```
+
+Copier les nouveaux fichiers publiés (`appsettings.Production.json` n'en fait pas partie, il est conservé), puis :
+
+```powershell
+Remove-Item C:\inetpub\flightManagerAuth\app_offline.htm
+```
+
+Garder une copie du dossier précédent pour un retour arrière rapide.

@@ -1,17 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <!-- .NET 9 n'est plus supporté depuis le 10/11/2026 : passer à net10.0 (LTS) dès que le SDK 10
-         et le Hosting Bundle 10 sont installés (poste de dev + serveur IIS). -->
-    <TargetFramework>net9.0</TargetFramework>
+    <!-- .NET 10 LTS (support jusqu'en novembre 2028). Le serveur IIS doit avoir le Hosting Bundle 10. -->
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>FlightManagerApp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.0" />
-    <PackageReference Include="System.DirectoryServices.Protocols" Version="9.0.2" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="10.0.15" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.15" />
   </ItemGroup>
 
   <ItemGroup>
