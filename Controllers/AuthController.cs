@@ -1,115 +1,126 @@
-using System.DirectoryServices.AccountManagement;
-using System.DirectoryServices.Protocols;
-using System.Net;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
+using FlightManagerApp.Options;
+using FlightManagerApp.Security;
+using FlightManagerApp.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.InteropServices; // Pour détecter l'OS
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace FlightManagerApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public sealed partial class AuthController : ControllerBase
     {
-        private readonly string _ldapServer;
-        private readonly string _ldapDomain;
-        private readonly int _ldapPort;
+        /// <summary>En-tête facultatif où le backend appelant transmet l'IP de l'utilisateur final (pour l'audit).</summary>
+        public const string EndUserIpHeader = "X-Client-IP";
 
-        public AuthController()
+        private readonly IAdAuthenticator _authenticator;
+        private readonly LoginAttemptTracker _attempts;
+        private readonly LdapOptions _ldap;
+        private readonly ILogger<AuthController> _logger;
+
+        public AuthController(IAdAuthenticator authenticator, LoginAttemptTracker attempts,
+            IOptions<LdapOptions> ldap, ILogger<AuthController> logger)
         {
-            _ldapServer = Environment.GetEnvironmentVariable("LDAP_SERVER") ?? "";
-            _ldapDomain = Environment.GetEnvironmentVariable("LDAP_DOMAIN") ?? "";
-            _ldapPort = 389; // 636 si SSL/TLS est activé
+            _authenticator = authenticator;
+            _attempts = attempts;
+            _ldap = ldap.Value;
+            _logger = logger;
         }
+
         [HttpPost("login")]
         [Consumes("application/json")]
-        public IActionResult Authenticate([FromBody] LoginRequest request)
+        [EnableRateLimiting(RateLimitPolicies.PerClient)]
+        public async Task<IActionResult> Authenticate([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
-            bool isAuthenticated = AuthenticateUser(_ldapDomain, request.Username, request.Password);
-            if (isAuthenticated)
-            {
-                return Ok(new { success = true, message = "Authentification réussie." });
-            }
-            return Unauthorized(new { success = false, message = "Le mot de pass ou le username est incorrect! " });
-        }
+            var client = HttpContext.Items[ApiKeyMiddleware.ClientItemKey] as string ?? ApiKeyMiddleware.AnonymousClient;
+            var endUserIp = Request.Headers[EndUserIpHeader].ToString() is { Length: > 0 and <= 45 } ip ? ip : "-";
 
-        private bool AuthenticateUser(string domain, string username, string password)
-        {
-            if (username.Trim() == "" || password.Trim() == "")
+            var username = NormalizeUsername(request.Username);
+            if (username is null || string.IsNullOrWhiteSpace(request.Password))
             {
-                Console.WriteLine($" Certainn");
-                return false;
+                return Failure(StatusCodes.Status400BadRequest, "invalid_request", "Nom d'utilisateur ou mot de passe invalide.");
             }
-            // try
-            // {
-            //     using (var context = new PrincipalContext(ContextType.Domain, domain))
-            //     {
-            //         return context.ValidateCredentials(username, password);
-            //     }
-            // }
-            // catch(Exception ex)
-            // {
-            //     Console.WriteLine($"Erreur lors de l'authentification : {ex.Message}");
-            //     return false;
-            // }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (_attempts.IsBlocked(username))
             {
-                return AuthenticateWithWindows(domain, username, password);
+                Audit(client, username, endUserIp, "too_many_attempts");
+                return Failure(StatusCodes.Status429TooManyRequests, "too_many_attempts",
+                    "Trop de tentatives échouées pour ce compte. Réessayez plus tard.");
             }
-            else
-            {
-                return AuthenticateWithLdap(domain, username, password);
-            }
-        }
 
-        private bool  AuthenticateWithWindows(string domain, string username, string password){
-        try
+            var result = await _authenticator.AuthenticateAsync(username, request.Password, cancellationToken);
+
+            if (result.Status == AuthStatus.InvalidCredentials) _attempts.RegisterFailure(username);
+            else if (result.Status == AuthStatus.Success) _attempts.Reset(username);
+
+            Audit(client, username, endUserIp, result.Status.ToString());
+
+            return result.Status switch
             {
-                using (var context = new PrincipalContext(ContextType.Domain, domain))
+                AuthStatus.Success => Ok(new
                 {
-                    return context.ValidateCredentials(username, password);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"Erreur lors de l'authentification : {ex.Message}");
-                return false;
-            }
+                    success = true,
+                    message = "Authentification réussie.",
+                    user = result.User,
+                }),
+                AuthStatus.InvalidCredentials => Failure(StatusCodes.Status401Unauthorized, "invalid_credentials",
+                    "Le mot de passe ou le nom d'utilisateur est incorrect."),
+                AuthStatus.AccountLocked => Failure(StatusCodes.Status423Locked, "account_locked",
+                    "Le compte est verrouillé dans Active Directory."),
+                AuthStatus.AccountDisabled => Failure(StatusCodes.Status403Forbidden, "account_disabled",
+                    "Le compte est désactivé ou expiré."),
+                AuthStatus.PasswordExpired => Failure(StatusCodes.Status403Forbidden, "password_expired",
+                    "Le mot de passe a expiré et doit être changé."),
+                _ => Failure(StatusCodes.Status503ServiceUnavailable, "directory_unavailable",
+                    "Active Directory est momentanément indisponible."),
+            };
         }
 
-        private bool AuthenticateWithLdap(string domain, string username, string password)
+        /// <summary>
+        /// Accepte "login", "DOMAINE\login" ou "login@domaine" et renvoie le sAMAccountName,
+        /// ou null si le format est invalide (empêche d'injecter un autre domaine dans le bind).
+        /// </summary>
+        private string? NormalizeUsername(string? raw)
         {
-            try
-            {
-              
-                // Console.WriteLine($"[Linux] Tentative d'authentification LDAP pour {username}@{domain} via {ldapServer}:{ldapPort}");
-                string bindDn = $"{username}@{domain}";
-                using (var ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, _ldapPort)))
-                {
-                    ldapConnection.AuthType = AuthType.Basic;
-                    ldapConnection.SessionOptions.ProtocolVersion = 3;
-                    ldapConnection.Credential = new NetworkCredential(bindDn, password);
-                    ldapConnection.Bind(); // Teste la connexion
+            var value = raw?.Trim() ?? string.Empty;
 
-                    Console.WriteLine("[Linux] Authentification LDAP réussie !");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Linux] ❌ Erreur LDAP : {ex.Message}");
-                return false;
-            }
+            var backslash = value.IndexOf('\\');
+            if (backslash >= 0) value = value[(backslash + 1)..];
+
+            var suffix = "@" + _ldap.Domain;
+            if (value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) value = value[..^suffix.Length];
+
+            return SamAccountNameRegex().IsMatch(value) ? value : null;
         }
-    
+
+        [GeneratedRegex(@"^[A-Za-z0-9._-]{1,64}$")]
+        private static partial Regex SamAccountNameRegex();
+
+        private void Audit(string client, string username, string endUserIp, string outcome)
+        {
+            var level = outcome == nameof(AuthStatus.Success) ? LogLevel.Information : LogLevel.Warning;
+            _logger.Log(level, "AUDIT login application={Client} utilisateur={Username} ipUtilisateur={EndUserIp} ipAppelant={CallerIp} resultat={Outcome}",
+                client, username, endUserIp, HttpContext.Connection.RemoteIpAddress, outcome);
+        }
+
+        private ObjectResult Failure(int statusCode, string error, string message)
+            => StatusCode(statusCode, new { success = false, error, message });
     }
 
-    
-    
-    public class LoginRequest
+    public sealed class LoginRequest
     {
+        [Required, StringLength(256)]
         public string Username { get; set; } = string.Empty;
+
+        [Required, StringLength(256)]
         public string Password { get; set; } = string.Empty;
     }
 
+    public static class RateLimitPolicies
+    {
+        public const string PerClient = "per-client";
+    }
 }

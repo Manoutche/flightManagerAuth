@@ -1,8 +1,9 @@
-# Auto detect text files and perform LF normalization
-* text=auto
 bin/
 obj/
 .vscode/
+.vs/
 .env
-.env-example
-web.config
+logs/
+aspnet_client/
+# Configuration de production (empreintes de clés, noms de serveurs) : reste sur le serveur
+appsettings.Production.json
